@@ -3,6 +3,7 @@ export interface MimosaState {
   stress: number
   openness: number
   lastDialogue: string
+  lastResponse: string
   timestamp: number
 }
 
@@ -18,5 +19,6 @@ export const DEFAULT_STATE: MimosaState = {
   stress: 20,
   openness: 50,
   lastDialogue: '',
+  lastResponse: '',
   timestamp: Date.now(),
 }

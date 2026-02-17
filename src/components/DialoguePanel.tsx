@@ -1,6 +1,15 @@
 import type { MimosaState, DialogueOption, DialogueCategory } from '../types'
 import { DEFAULT_STATE } from '../types'
 
+/** Conversation starters shown in the main UI (match reference design) */
+export const conversationStarters: DialogueOption[] = [
+  { text: 'Hello! What species are you?', score: 3 },
+  { text: 'Where do you come from originally?', score: 3 },
+  { text: 'You look unique. What can you do?', score: 4 },
+  { text: "You don't look like the other Mimosas I've seen.", score: 6 },
+  { text: 'Your leaves look so delicate.', score: 2 },
+]
+
 export const dialogues: Record<DialogueCategory, DialogueOption[]> = {
   neutral: [
     { text: 'Hello! What species are you?', score: 3 },
@@ -56,15 +65,27 @@ export function applyDialogueToState(prev: MimosaState, option: DialogueOption):
   }
 }
 
+/** Mimosa’s reply per conversation starter (shown as subtitles in 3D view) */
+const MIMOSA_REPLIES: Record<string, string> = {
+  'Hello! What species are you?': "I'm a Mimosa. My leaves can sense touch.",
+  'Where do you come from originally?': "I'm from here. This place is my home.",
+  'You look unique. What can you do?': "I feel, and I remember. I close when I'm hurt.",
+  "You don't look like the other Mimosas I've seen.": "We're all a bit different. I'm still a Mimosa.",
+  'Your leaves look so delicate.': "They are. Please be gentle.",
+}
+
 function getResponseText(option: DialogueOption, _newState: MimosaState): string {
-  if (option.score >= 7) return '…'
-  if (option.score <= 2) return '…'
-  return '…'
+  if (MIMOSA_REPLIES[option.text]) return MIMOSA_REPLIES[option.text]
+  if (option.score >= 7) return "That hurt. I don't want to talk."
+  if (option.score <= 2) return "Thank you for seeing me."
+  return "I'm here. I'm listening."
 }
 
 interface DialoguePanelProps {
   currentState: MimosaState | null
   onSelect: (option: DialogueOption) => void
+  onReset?: () => void
+  onBack?: () => void
   lastResponse?: string
   loading?: boolean
 }
@@ -76,73 +97,65 @@ const categories: { key: DialogueCategory; label: string }[] = [
 ]
 
 export function DialoguePanel({
-  currentState,
+  currentState: _currentState,
   onSelect,
-  lastResponse = '',
+  onReset,
+  onBack,
+  lastResponse: _lastResponse = '',
   loading = false,
 }: DialoguePanelProps) {
-  const state = currentState ?? DEFAULT_STATE
-
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2 text-center text-xs font-medium text-gray-400">
-        <div>
-          <div className="text-emerald-400">Trust</div>
-          <div className="h-1.5 w-full rounded-full bg-gray-800">
-            <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-              style={{ width: `${state.trust}%` }}
-            />
-          </div>
-        </div>
-        <div>
-          <div className="text-amber-400">Stress</div>
-          <div className="h-1.5 w-full rounded-full bg-gray-800">
-            <div
-              className="h-full rounded-full bg-amber-500 transition-all duration-300"
-              style={{ width: `${state.stress}%` }}
-            />
-          </div>
-        </div>
-        <div>
-          <div className="text-sky-400">Openness</div>
-          <div className="h-1.5 w-full rounded-full bg-gray-800">
-            <div
-              className="h-full rounded-full bg-sky-500 transition-all duration-300"
-              style={{ width: `${state.openness}%` }}
-            />
-          </div>
-        </div>
+    <div className="relative flex min-h-screen flex-col bg-black text-white">
+      {/* Left nav arrow */}
+      <button
+        type="button"
+        onClick={onBack}
+        className="absolute left-2 top-24 z-10 flex h-10 w-10 items-center justify-center rounded-md bg-gray-800 text-white hover:bg-gray-700"
+        aria-label="Back"
+      >
+        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+        </svg>
+      </button>
+
+      <header className="px-6 pt-8 pb-4">
+        <h1 className="text-2xl font-normal tracking-wide text-white sm:text-3xl">
+          MICROAGGRESSIONS AND RESPONSES
+        </h1>
+      </header>
+
+      {/* Prompt with green left border */}
+      <div className="mx-6 mb-6 flex overflow-hidden rounded border-0 border-l-4 border-l-emerald-500 bg-gray-900 px-4 py-3">
+        <p className="text-white">
+          You approach the Mimosa. Choose a conversation starter:
+        </p>
       </div>
 
-      {lastResponse && (
-        <div className="rounded-lg border border-gray-700 bg-gray-800/50 px-3 py-2 text-sm text-gray-300">
-          Mimosa: {lastResponse}
-        </div>
-      )}
-
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {categories.map(({ key, label }) => (
-          <div
-            key={key}
-            className="flex min-w-[120px] flex-col gap-2 rounded-lg border border-gray-700 bg-gray-800/80 p-3"
+      {/* Conversation options - stacked vertically */}
+      <div className="mx-6 flex flex-1 flex-col gap-3">
+        {conversationStarters.map((opt) => (
+          <button
+            key={opt.text}
+            type="button"
+            disabled={loading}
+            onClick={() => onSelect(opt)}
+            className="w-full rounded-md bg-gray-800 px-4 py-3 text-center text-white transition hover:bg-gray-700 active:scale-[0.99] disabled:opacity-50"
           >
-            <div className="text-center text-xs font-semibold uppercase tracking-wide text-gray-400">
-              {label}
-            </div>
-            {dialogues[key].map((opt) => (
-              <button
-                key={opt.text}
-                type="button"
-                disabled={loading}
-                onClick={() => onSelect(opt)}
-                className="rounded-md border border-gray-600 bg-gray-700/80 px-2 py-2 text-left text-sm text-gray-200 transition hover:border-gray-500 hover:bg-gray-600/80 active:scale-[0.98] disabled:opacity-50"
-              >
-                {opt.text}
-              </button>
-            ))}
-          </div>
+            {opt.text}
+          </button>
         ))}
+      </div>
+
+      {/* Reset conversation - yellow-green border */}
+      <div className="border-t border-gray-800 px-6 py-6">
+        <button
+          type="button"
+          onClick={() => onReset?.()}
+          disabled={loading}
+          className="w-full rounded border-2 border-lime-400 bg-gray-800 py-3 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-gray-700 disabled:opacity-50"
+        >
+          Reset conversation
+        </button>
       </div>
     </div>
   )

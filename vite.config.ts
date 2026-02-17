@@ -6,6 +6,7 @@ const defaultState = {
   stress: 20,
   openness: 50,
   lastDialogue: '',
+  lastResponse: '',
   timestamp: Date.now(),
 }
 
@@ -34,6 +35,7 @@ export default defineConfig({
                   stress: Math.max(0, Math.min(100, data.stress ?? memoryState.stress)),
                   openness: Math.max(0, Math.min(100, data.openness ?? memoryState.openness)),
                   lastDialogue: typeof data.lastDialogue === 'string' ? data.lastDialogue : memoryState.lastDialogue,
+                  lastResponse: typeof data.lastResponse === 'string' ? data.lastResponse : memoryState.lastResponse,
                   timestamp: typeof data.timestamp === 'number' ? data.timestamp : Date.now(),
                 }
                 res.setHeader('Content-Type', 'application/json')

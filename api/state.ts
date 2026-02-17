@@ -6,6 +6,7 @@ interface MimosaState {
   stress: number
   openness: number
   lastDialogue: string
+  lastResponse: string
   timestamp: number
 }
 
@@ -16,6 +17,7 @@ const DEFAULT_STATE: MimosaState = {
   stress: 20,
   openness: 50,
   lastDialogue: '',
+  lastResponse: '',
   timestamp: Date.now(),
 }
 
@@ -48,6 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       stress: Math.max(0, Math.min(100, body.stress)),
       openness: Math.max(0, Math.min(100, body.openness)),
       lastDialogue: typeof body.lastDialogue === 'string' ? body.lastDialogue : '',
+      lastResponse: typeof body.lastResponse === 'string' ? body.lastResponse : '',
       timestamp: typeof body.timestamp === 'number' ? body.timestamp : Date.now(),
     }
     try {

@@ -7,7 +7,7 @@ export function Display() {
   const { state } = useMimosaStatePoll(POLL_INTERVAL_MS)
 
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className="fixed inset-0 bg-white">
       <MimosaScene state={state} />
     </div>
   )
